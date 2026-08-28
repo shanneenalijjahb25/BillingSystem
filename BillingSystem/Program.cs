@@ -3,7 +3,7 @@ namespace BillingSystem
     internal static class Program
     {
         /// <summary>
-        ///  The main entry point for the application Billing System.
+        /// The main entry point for the application Billing System v2.0.
         /// </summary>
         [STAThread]
         static void Main()
