@@ -41,6 +41,8 @@
             btnSearch = new Button();
             txtSearch = new TextBox();
             btnLogout = new Button();
+            btnExportExcel = new Button();
+            btnExportPdf = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvCustomers).BeginInit();
             SuspendLayout();
             // 
@@ -114,7 +116,7 @@
             // 
             // btnAdd
             // 
-            btnAdd.Location = new Point(173, 354);
+            btnAdd.Location = new Point(127, 354);
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(117, 29);
             btnAdd.TabIndex = 2;
@@ -124,7 +126,7 @@
             // 
             // btnDelete
             // 
-            btnDelete.Location = new Point(330, 354);
+            btnDelete.Location = new Point(321, 354);
             btnDelete.Name = "btnDelete";
             btnDelete.Size = new Size(94, 29);
             btnDelete.TabIndex = 3;
@@ -152,18 +154,40 @@
             // 
             // btnLogout
             // 
-            btnLogout.Location = new Point(472, 354);
+            btnLogout.Location = new Point(504, 354);
             btnLogout.Name = "btnLogout";
             btnLogout.Size = new Size(94, 29);
             btnLogout.TabIndex = 6;
             btnLogout.Text = "Logout";
             btnLogout.UseVisualStyleBackColor = true;
             // 
+            // btnExportExcel
+            // 
+            btnExportExcel.Location = new Point(208, 394);
+            btnExportExcel.Name = "btnExportExcel";
+            btnExportExcel.Size = new Size(135, 29);
+            btnExportExcel.TabIndex = 7;
+            btnExportExcel.Text = "Export to Excel";
+            btnExportExcel.UseVisualStyleBackColor = true;
+            btnExportExcel.Click += btnExportExcel_Click;
+            // 
+            // btnExportPdf
+            // 
+            btnExportPdf.Location = new Point(403, 394);
+            btnExportPdf.Name = "btnExportPdf";
+            btnExportPdf.Size = new Size(122, 29);
+            btnExportPdf.TabIndex = 8;
+            btnExportPdf.Text = "Export to PDF";
+            btnExportPdf.UseVisualStyleBackColor = true;
+            btnExportPdf.Click += btnExportPdf_Click;
+            // 
             // CustomerListForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(782, 453);
+            Controls.Add(btnExportPdf);
+            Controls.Add(btnExportExcel);
             Controls.Add(btnLogout);
             Controls.Add(txtSearch);
             Controls.Add(btnSearch);
@@ -195,5 +219,7 @@
         private DataGridViewTextBoxColumn ContactNumber;
         private DataGridViewTextBoxColumn Email;
         private DataGridViewTextBoxColumn Balance;
+        private Button btnExportExcel;
+        private Button btnExportPdf;
     }
 }
