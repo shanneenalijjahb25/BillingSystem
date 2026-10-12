@@ -441,5 +441,13 @@ namespace BillingSystem
                 }
             }
         }
+
+        private void btnAnalytics_Click(object sender, EventArgs e)
+        {
+            // Open the Analytics Dashboard as a dialog so the
+            // Customer List stays open in the background
+            frmAnalytics analyticsForm = new frmAnalytics();
+            analyticsForm.ShowDialog(this);
+        }
     }
 }
