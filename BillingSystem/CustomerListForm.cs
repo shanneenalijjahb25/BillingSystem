@@ -1,18 +1,19 @@
-﻿using System;
+﻿using BillingSystem.Database;
+using BillingSystem.Utils;
+using ClosedXML.Excel;
+using MySql.Data.MySqlClient;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data;
-using MySql.Data.MySqlClient;
-using BillingSystem.Database;
-using ClosedXML.Excel;
-using System.IO;
-using PdfSharp.Pdf;
-using PdfSharp.Drawing;
 
 namespace BillingSystem
 {
@@ -22,6 +23,7 @@ namespace BillingSystem
         // 0 means no customer is currently selected.
         private int _selectedCustomerId = 0;
         private bool _isLoadingCustomers = false; // Added
+        private bool _canEdit = true;
 
 
         public CustomerListForm()
@@ -32,7 +34,10 @@ namespace BillingSystem
 
         private void CustomerListForm_Load(object sender, EventArgs e)
         {
+            ApplyTheme();
             LoadCustomers();
+            ApplyPermissions();
+            InitStatusStrip();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -173,6 +178,7 @@ namespace BillingSystem
 
         private void dgvCustomers_SelectionChanged(object sender, EventArgs e)
         {
+
             if (_isLoadingCustomers)  // Added
                 return;
 
@@ -192,6 +198,8 @@ namespace BillingSystem
 
         private void dgvCustomers_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+
+            if (!_canEdit) return;
             // e.RowIndex is -1 when the header row is double-clicked — ignore it
             if (e.RowIndex < 0) return;
 
@@ -235,6 +243,9 @@ namespace BillingSystem
 
                         if (rowsAffected > 0)
                         {
+                            AuditLogger.Log("DELETE_CUSTOMER",
+                            $"Customer ID {customerId} deleted by {AppSession.CurrentUsername}.");
+
                             MessageBox.Show("Customer deleted successfully.",
                                 "Deleted", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -331,6 +342,9 @@ namespace BillingSystem
 
                         workbook.SaveAs(saveDialog.FileName);
                     }
+
+                    AuditLogger.Log("EXPORT_EXCEL",
+                        $"{AppSession.CurrentUsername} exported customer list to Excel.");
 
                     MessageBox.Show("Customer list exported successfully to Excel.",
                         "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -430,6 +444,8 @@ namespace BillingSystem
                         gfx.Dispose();   // finish drawing before saving
                         document.Save(saveDialog.FileName);
                     }
+                    AuditLogger.Log("EXPORT_PDF",
+                         $"{AppSession.CurrentUsername} exported customer list to PDF.");
 
                     MessageBox.Show("Customer list exported successfully to PDF.",
                         "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -444,10 +460,168 @@ namespace BillingSystem
 
         private void btnAnalytics_Click(object sender, EventArgs e)
         {
+            AuditLogger.Log("VIEW_ANALYTICS",
+                $"{AppSession.CurrentUsername} opened the Analytics Dashboard.");
+
             // Open the Analytics Dashboard as a dialog so the
             // Customer List stays open in the background
             frmAnalytics analyticsForm = new frmAnalytics();
             analyticsForm.ShowDialog(this);
+        }
+
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            AuditLogger.Log("LOGOUT",
+                $"{AppSession.CurrentFullName} ({AppSession.CurrentRole}) logged out.");
+
+            AppSession.Clear();
+
+            this.Close();
+
+        }
+
+        private void btnAuditLog_Click(object sender, EventArgs e)
+        {
+            frmAuditLogs auditForm = new frmAuditLogs();
+            auditForm.ShowDialog(this);
+        }
+
+        private void btnManagePermissions_Click(object sender, EventArgs e)
+        {
+            frmManagePermissions permForm = new frmManagePermissions();
+            permForm.ShowDialog(this);
+        }
+
+        private void ApplyPermissions()
+        {
+            try
+            {
+                using (var conn = DatabaseConnection.GetConnection())
+                {
+                    conn.Open();
+                    string sql = @"SELECT PermissionName, IsAllowed
+                           FROM   UserPermissions
+                           WHERE  Role = @Role;";
+
+                    using (var cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Role", AppSession.CurrentRole);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string permName = reader.GetString("PermissionName");
+                                bool isAllowed = reader.GetBoolean("IsAllowed");
+
+                                switch (permName)
+                                {
+                                    case "AddCustomer":
+                                        btnAdd.Enabled = isAllowed; break;
+                                    case "EditCustomer":
+                                        // Edit is triggered by double-click — remember the
+                                        // permission so CellDoubleClick can check it
+                                        _canEdit = isAllowed;
+                                        break;
+                                    case "DeleteCustomer":
+                                        btnDelete.Enabled = isAllowed; break;
+                                    case "Analytics":
+                                        btnAnalytics.Enabled = isAllowed; break;
+                                    case "ExportExcel":
+                                        btnExportExcel.Enabled = isAllowed; break;
+                                    case "ExportPdf":
+                                        btnExportPdf.Enabled = isAllowed; break;
+                                    case "AuditLogs":
+                                        btnAuditLog.Enabled = isAllowed; break;
+                                    case "ManagePermissions":
+                                        btnManagePermissions.Enabled = isAllowed; break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading permissions:\n{ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Call this inside CustomerListForm_Load after ApplyPermissions()
+        private void InitStatusStrip()
+        {
+            lblStatusUser.Text =
+                $"User: {AppSession.CurrentFullName}  |  Role: {AppSession.CurrentRole}";
+            UpdateClock();
+        }
+
+        private void UpdateClock()
+        {
+            lblStatusTime.Text = DateTime.Now.ToString("dddd, MMMM dd yyyy   hh:mm:ss tt");
+        }
+
+        private void statusTimer_Tick(object sender, EventArgs e)
+        {
+            UpdateClock();
+        }
+
+        private void ApplyTheme()
+        {
+            // Form background
+            this.BackColor = AppTheme.BackgroundColor;
+
+            // Action buttons
+            btnAdd.BackColor = AppTheme.SuccessColor;
+            btnAdd.ForeColor = Color.White;
+            btnDelete.BackColor = AppTheme.DangerColor;
+            btnDelete.ForeColor = Color.White;
+            btnAnalytics.BackColor = AppTheme.PrimaryColor;
+            btnAnalytics.ForeColor = Color.White;
+            btnExportExcel.BackColor = AppTheme.SecondaryColor;
+            btnExportExcel.ForeColor = Color.White;
+            btnExportPdf.BackColor = AppTheme.SecondaryColor;
+            btnExportPdf.ForeColor = Color.White;
+            btnAuditLog.BackColor = AppTheme.SecondaryColor;
+            btnAuditLog.ForeColor = Color.White;
+            btnManagePermissions.BackColor = AppTheme.DangerColor;
+            btnManagePermissions.ForeColor = Color.White;
+
+            // DataGridView header colors
+            dgvCustomers.ColumnHeadersDefaultCellStyle.BackColor = AppTheme.PrimaryColor;
+            dgvCustomers.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvCustomers.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 9f, FontStyle.Bold);
+
+            // Alternating row colors
+            dgvCustomers.AlternatingRowsDefaultCellStyle.BackColor = AppTheme.GridRowAlt;
+        }
+
+        private void dgvCustomers_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            // Skip the header row
+            if (e.RowIndex < 0) return;
+
+
+            // Read Status from the data behind this row (the DataTable from LoadCustomers)
+            var rowData = dgvCustomers.Rows[e.RowIndex].DataBoundItem as DataRowView;
+            string status = rowData?["Status"]?.ToString() ?? "";
+
+
+            if (status == "Inactive")
+            {
+                // The whole row turns light red
+                e.CellStyle.BackColor = AppTheme.InactiveRowColor;
+            }
+            else if (status == "Active" &&
+                     dgvCustomers.Columns[e.ColumnIndex].DataPropertyName == "Status")
+            {
+                // Only the Status cell turns light green, so the
+                // alternating row colors stay visible
+                e.CellStyle.BackColor = AppTheme.ActiveRowColor;
+            }
+
+
         }
     }
 }
