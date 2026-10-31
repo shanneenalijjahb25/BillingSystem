@@ -118,6 +118,8 @@
             btnClose.TabIndex = 2;
             btnClose.Text = "Close";
             btnClose.UseVisualStyleBackColor = true;
+            btnClose.Click += btnClose_Click;  
+
             // 
             // frmBillingHistory
             // 
