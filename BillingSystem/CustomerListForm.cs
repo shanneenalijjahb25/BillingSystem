@@ -86,6 +86,8 @@ namespace BillingSystem
                         }
 
                         lblTitle.Text = $"Customer List  ({dt.Rows.Count} record(s))";
+
+                        _isLoadingCustomers = false; // Reset flag after loading is complete
                     }
                 }
             }
@@ -622,6 +624,30 @@ namespace BillingSystem
             }
 
 
+        }
+
+        private void btnChangePassword_Click(object sender, EventArgs e)
+        {
+            frmChangePassword changePasswordForm = new frmChangePassword();
+            changePasswordForm.ShowDialog(this);
+        }
+
+        private void btnViewBilling_Click(object sender, EventArgs e)
+        {
+            // Check if a customer row is selected
+            if (_selectedCustomerId == 0)
+            {
+                MessageBox.Show(
+                    "Please select a customer to view their billing history.",
+                    "No Selection",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Open the Billing History form for the selected customer
+            frmBillingHistory billingForm = new frmBillingHistory(_selectedCustomerId);
+            billingForm.ShowDialog(this);
         }
     }
 }
