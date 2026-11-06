@@ -1,4 +1,8 @@
-﻿using System;
+﻿using BillingSystem.Database;
+using BillingSystem.Utils;
+using DocumentFormat.OpenXml.Drawing;
+using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,8 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
-using BillingSystem.Database;
 
 namespace BillingSystem
 {
@@ -21,17 +23,18 @@ namespace BillingSystem
         public frmBillingHistory(int customerId)
         {
             InitializeComponent();
+            Theme();
             _customerId = customerId;
-            dataGridView1.AutoGenerateColumns = false;
+            dgvBillingHistory.AutoGenerateColumns = false;
 
             // Set up column data bindings
-            dataGridView1.Columns["BillingMonth"].DataPropertyName = "BillingMonth";
-            dataGridView1.Columns["PreviousReading"].DataPropertyName = "PreviousReading";
-            dataGridView1.Columns["PresentReading"].DataPropertyName = "PresentReading";
-            dataGridView1.Columns["Consumption"].DataPropertyName = "Consumption";
-            dataGridView1.Columns["RatePerCubic"].DataPropertyName = "RatePerCubic";
-            dataGridView1.Columns["TotalAmount"].DataPropertyName = "TotalAmount";
-            dataGridView1.Columns["Status"].DataPropertyName = "Status";
+            dgvBillingHistory.Columns["BillingMonth"].DataPropertyName = "BillingMonth";
+            dgvBillingHistory.Columns["PreviousReading"].DataPropertyName = "PreviousReading";
+            dgvBillingHistory.Columns["PresentReading"].DataPropertyName = "PresentReading";
+            dgvBillingHistory.Columns["Consumption"].DataPropertyName = "Consumption";
+            dgvBillingHistory.Columns["Rate"].DataPropertyName = "Rate";
+            dgvBillingHistory.Columns["TotalAmount"].DataPropertyName = "TotalAmount";
+            dgvBillingHistory.Columns["Status"].DataPropertyName = "Status";
         }
 
         private void frmBillingHistory_Load(object sender, EventArgs e)
@@ -127,7 +130,7 @@ namespace BillingSystem
                         }
 
                         // Bind the DataTable to the grid (whether empty or not)
-                        dataGridView1.DataSource = dt;
+                        dgvBillingHistory.DataSource = dt;
                     }
                 }
             }
@@ -136,6 +139,116 @@ namespace BillingSystem
                 MessageBox.Show($"Error loading billing history:\n {ex.Message}",
                     "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void Theme()
+        {
+            // DataGridView Styling
+            dgvBillingHistory.EnableHeadersVisualStyles = false;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.BackColor =
+                AppTheme.PrimaryColor;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.ForeColor =
+                Color.White;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 9F, FontStyle.Bold);
+
+            dgvBillingHistory.DefaultCellStyle.Font =
+                new Font("Segoe UI", 9F);
+
+            dgvBillingHistory.AlternatingRowsDefaultCellStyle.BackColor =
+                AppTheme.GridRowAlt;
+
+            dgvBillingHistory.DefaultCellStyle.SelectionBackColor =
+                AppTheme.AccentColor;
+
+            dgvBillingHistory.DefaultCellStyle.SelectionForeColor =
+                AppTheme.TextColor;
+
+            dgvBillingHistory.RowTemplate.Height = 30;
+
+            // Make DataGridView read-only
+            dgvBillingHistory.ReadOnly = true;
+            dgvBillingHistory.AllowUserToAddRows = false;
+            dgvBillingHistory.AllowUserToDeleteRows = false;
+            dgvBillingHistory.RowHeadersVisible = false;
+
+            dgvBillingHistory.ColumnHeadersHeight = 45;
+            dgvBillingHistory.ColumnHeadersHeightSizeMode =
+                DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
+            dgvBillingHistory.DefaultCellStyle.Padding =
+                new Padding(5, 0, 5, 0);
+
+            // DataGridView Styling
+            dgvBillingHistory.BackgroundColor = Color.White;
+            dgvBillingHistory.BorderStyle = BorderStyle.FixedSingle;
+            dgvBillingHistory.GridColor = Color.Gainsboro;
+
+            dgvBillingHistory.AutoSizeColumnsMode =
+                DataGridViewAutoSizeColumnsMode.Fill;
+
+            dgvBillingHistory.RowHeadersVisible = false;
+            dgvBillingHistory.ReadOnly = true;
+            dgvBillingHistory.AllowUserToAddRows = false;
+            dgvBillingHistory.AllowUserToDeleteRows = false;
+            dgvBillingHistory.SelectionMode =
+                DataGridViewSelectionMode.FullRowSelect;
+
+            dgvBillingHistory.EnableHeadersVisualStyles = false;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.BackColor =
+                AppTheme.PrimaryColor;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.ForeColor =
+                Color.White;
+
+            dgvBillingHistory.ColumnHeadersDefaultCellStyle.Font =
+                new Font("Segoe UI", 9F, FontStyle.Bold);
+
+            dgvBillingHistory.DefaultCellStyle.Font =
+                new Font("Segoe UI", 9F);
+
+            dgvBillingHistory.DefaultCellStyle.BackColor = Color.White;
+
+            dgvBillingHistory.AlternatingRowsDefaultCellStyle.BackColor =
+                AppTheme.GridRowAlt;
+
+            dgvBillingHistory.DefaultCellStyle.SelectionBackColor =
+                AppTheme.AccentColor;
+
+            dgvBillingHistory.DefaultCellStyle.SelectionForeColor =
+                AppTheme.TextColor;
+
+            dgvBillingHistory.ColumnHeadersHeight = 40;
+            dgvBillingHistory.RowTemplate.Height = 30;
+
+            // Close Button Styling
+            btnClose.BackColor = AppTheme.PrimaryColor;
+            btnClose.ForeColor = Color.White;
+            btnClose.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+
+            btnClose.FlatStyle = FlatStyle.Flat;
+            btnClose.FlatAppearance.BorderSize = 0;
+
+            btnClose.FlatAppearance.MouseOverBackColor =
+                AppTheme.DarkenColor(AppTheme.PrimaryColor, 20);
+
+            btnClose.Cursor = Cursors.Hand;
+            btnClose.UseVisualStyleBackColor = false;
+
+            dgvBillingHistory.AutoSizeColumnsMode =
+        DataGridViewAutoSizeColumnsMode.Fill;
+
+            dgvBillingHistory.Columns["BillingMonth"].FillWeight = 110;
+            dgvBillingHistory.Columns["PreviousReading"].FillWeight = 110;
+            dgvBillingHistory.Columns["PresentReading"].FillWeight = 115;
+            dgvBillingHistory.Columns["Consumption"].FillWeight = 125;
+            dgvBillingHistory.Columns["Rate"].FillWeight = 85;
+            dgvBillingHistory.Columns["TotalAmount"].FillWeight = 110;
+            dgvBillingHistory.Columns["Status"].FillWeight = 90;
         }
 
         private void btnClose_Click(object sender, EventArgs e)

@@ -278,6 +278,18 @@ namespace BillingSystem
             }
         }
 
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            txtFullName.Text = " ";
+            txtAddress.Text = " ";  
+            txtContact.Text = " ";  
+            txtEmail.Text = " ";    
+            txtBalance.Text = "0.00";
+        }
 
+        private void btnBack_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }

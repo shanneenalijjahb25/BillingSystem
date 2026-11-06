@@ -34,10 +34,10 @@ namespace BillingSystem
 
         private void CustomerListForm_Load(object sender, EventArgs e)
         {
-            ApplyTheme();
-            LoadCustomers();
-            ApplyPermissions();
-            InitStatusStrip();
+        ApplyTheme();
+        LoadCustomers();
+        ApplyPermissions();
+        InitStatusStrip();
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -71,6 +71,13 @@ namespace BillingSystem
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
 
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            System.Diagnostics.Debug.WriteLine(
+                                $"Customer: {row["FullName"]} | Status: {row["Status"]}"
+                            );
+                        }
+
                         _isLoadingCustomers = true; // Added
 
                         // Bind the DataTable to the grid
@@ -83,9 +90,13 @@ namespace BillingSystem
                             dgvCustomers.Columns["FullName"].HeaderText = "Full Name";
                             dgvCustomers.Columns["ContactNumber"].HeaderText = "Contact No.";
                             dgvCustomers.Columns["Balance"].HeaderText = "Balance (₱)";
+                            dgvCustomers.Columns["Status"].HeaderText = "Status";
+                            dgvCustomers.Columns["Status"].DataPropertyName = "Status";
+
                         }
 
                         lblTitle.Text = $"Customer List  ({dt.Rows.Count} record(s))";
+                        lblCount.Text = $"{dt.Rows.Count} record(s)";
 
                         _isLoadingCustomers = false; // Reset flag after loading is complete
                     }
@@ -132,6 +143,7 @@ namespace BillingSystem
 
                             dgvCustomers.DataSource = dt;
                             lblTitle.Text = $"Customer List  ({dt.Rows.Count} result(s))";
+                            lblCount.Text = $"{dt.Rows.Count} record(s)";
                         }
                     }
                 }
@@ -168,14 +180,19 @@ namespace BillingSystem
 
         private void ConfigureDataGridView()
         {
-            dgvCustomers.AutoGenerateColumns = false;
+            var g = dgvCustomers;
+            g.AutoGenerateColumns = false;
 
-            dgvCustomers.Columns["CustomerID"].DataPropertyName = "CustomerID";
-            dgvCustomers.Columns["FullName"].DataPropertyName = "FullName";
-            dgvCustomers.Columns["Address"].DataPropertyName = "Address";
-            dgvCustomers.Columns["ContactNumber"].DataPropertyName = "ContactNumber";
-            dgvCustomers.Columns["Email"].DataPropertyName = "Email";
-            dgvCustomers.Columns["Balance"].DataPropertyName = "Balance";
+            g.Columns["CustomerID"].DataPropertyName = "CustomerID";
+            g.Columns["FullName"].DataPropertyName = "FullName";
+            g.Columns["Address"].DataPropertyName = "Address";
+            g.Columns["ContactNumber"].DataPropertyName = "ContactNumber";
+            g.Columns["Email"].DataPropertyName = "Email";
+            g.Columns["Balance"].DataPropertyName = "Balance";
+            g.Columns["Status"].DataPropertyName = "Status";
+
+            g.Columns["Balance"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            g.Columns["Balance"].DefaultCellStyle.Format = "N2";
         }
 
         private void dgvCustomers_SelectionChanged(object sender, EventArgs e)
@@ -570,60 +587,80 @@ namespace BillingSystem
 
         private void ApplyTheme()
         {
-            // Form background
-            this.BackColor = AppTheme.BackgroundColor;
+            BackColor = AppTheme.LightBackground;
+            ForeColor = AppTheme.TextColor;
 
-            // Action buttons
-            btnAdd.BackColor = AppTheme.SuccessColor;
-            btnAdd.ForeColor = Color.White;
-            btnDelete.BackColor = AppTheme.DangerColor;
-            btnDelete.ForeColor = Color.White;
-            btnAnalytics.BackColor = AppTheme.PrimaryColor;
-            btnAnalytics.ForeColor = Color.White;
-            btnExportExcel.BackColor = AppTheme.SecondaryColor;
-            btnExportExcel.ForeColor = Color.White;
-            btnExportPdf.BackColor = AppTheme.SecondaryColor;
-            btnExportPdf.ForeColor = Color.White;
-            btnAuditLog.BackColor = AppTheme.SecondaryColor;
-            btnAuditLog.ForeColor = Color.White;
-            btnManagePermissions.BackColor = AppTheme.DangerColor;
+            // Header
+            pnlHeader.BackColor = AppTheme.PrimaryColor;
+            lblTitle.ForeColor = Color.White;
+            lblCount.ForeColor = AppTheme.AccentColor;
+
+            btnManagePermissions.FlatStyle = FlatStyle.Flat;
+            btnManagePermissions.FlatAppearance.BorderColor = Color.White;
+            btnManagePermissions.FlatAppearance.MouseOverBackColor = AppTheme.SecondaryColor;
+            btnManagePermissions.BackColor = AppTheme.PrimaryColor;
             btnManagePermissions.ForeColor = Color.White;
+            btnManagePermissions.Cursor = Cursors.Hand;
+            btnManagePermissions.UseVisualStyleBackColor = false;
 
-            // DataGridView header colors
-            dgvCustomers.ColumnHeadersDefaultCellStyle.BackColor = AppTheme.PrimaryColor;
-            dgvCustomers.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvCustomers.ColumnHeadersDefaultCellStyle.Font =
-                new Font("Segoe UI", 9f, FontStyle.Bold);
+            // Toolbar
+            pnlToolbar.BackColor = AppTheme.CardColor;
+            AppTheme.StyleSolidButton(btnViewBilling, AppTheme.PrimaryColor);
+            AppTheme.StyleSolidButton(btnAnalytics, AppTheme.SecondaryColor);
+            AppTheme.StyleSolidButton(btnSearch, AppTheme.SecondaryColor);
+            txtSearch.BorderStyle = BorderStyle.FixedSingle;
+            txtSearch.ForeColor = AppTheme.TextColor;
 
-            // Alternating row colors
-            dgvCustomers.AlternatingRowsDefaultCellStyle.BackColor = AppTheme.GridRowAlt;
+            // Grid
+            AppTheme.StyleGrid(dgvCustomers);
+
+            // Action bar
+            pnlActions.BackColor = AppTheme.CardColor;
+            AppTheme.StyleSolidButton(btnAdd, AppTheme.SuccessColor);
+            AppTheme.StyleSolidButton(btnDelete, AppTheme.DangerColor);
+            AppTheme.StyleSolidButton(btnExportPdf, AppTheme.SecondaryColor);
+            AppTheme.StyleSolidButton(btnExportExcel, AppTheme.SecondaryColor);
+            AppTheme.StyleSolidButton(btnAuditLog, AppTheme.PrimaryColor);
+            AppTheme.StyleSolidButton(btnChangePassword, AppTheme.PrimaryColor);
+            AppTheme.StyleSolidButton(btnLogout, AppTheme.TextColor);
+
+            // Status strip
+            statusStrip1.BackColor = AppTheme.PrimaryColor;
+            statusStrip1.ForeColor = Color.White;
+            lblStatusUser.ForeColor = Color.White;
+            lblStatusUser.AutoSize = false;
+            lblStatusUser.Width = 300;
+            lblStatusUser.TextAlign = ContentAlignment.MiddleLeft;
+            lblStatusTime.ForeColor = Color.White;
         }
 
         private void dgvCustomers_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            // Skip the header row
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.CellStyle == null)
+                return;
 
-
-            // Read Status from the data behind this row (the DataTable from LoadCustomers)
             var rowData = dgvCustomers.Rows[e.RowIndex].DataBoundItem as DataRowView;
-            string status = rowData?["Status"]?.ToString() ?? "";
 
+            if (rowData == null)
+                return;
+
+            string status = rowData["Status"]?.ToString()?.Trim() ?? "";
+
+            string columnName =
+                dgvCustomers.Columns[e.ColumnIndex].DataPropertyName;
 
             if (status == "Inactive")
             {
-                // The whole row turns light red
+                // Entire row turns light red
                 e.CellStyle.BackColor = AppTheme.InactiveRowColor;
+                e.CellStyle.ForeColor = AppTheme.TextColor;
             }
-            else if (status == "Active" &&
-                     dgvCustomers.Columns[e.ColumnIndex].DataPropertyName == "Status")
+            else if (status == "Active" && columnName == "Status")
             {
-                // Only the Status cell turns light green, so the
-                // alternating row colors stay visible
+                // Only Status cell turns light green
                 e.CellStyle.BackColor = AppTheme.ActiveRowColor;
+                e.CellStyle.ForeColor = Color.DarkGreen;
             }
-
-
         }
 
         private void btnChangePassword_Click(object sender, EventArgs e)

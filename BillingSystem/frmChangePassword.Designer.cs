@@ -133,6 +133,7 @@
             Controls.Add(lblTitleChangePass);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "frmChangePassword";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "frmChangePassword";
             ResumeLayout(false);
             PerformLayout();

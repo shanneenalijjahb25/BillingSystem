@@ -38,6 +38,108 @@ namespace BillingSystem.Utils
 
         // Light red — inactive customer rows
         public static Color InactiveRowColor = Color.FromArgb(255, 199, 206);
+
+        // Additional dashboard colors
+
+        public static Color CardColor =
+            Color.White;
+
+        public static Color LightBackground =
+            Color.FromArgb(245, 247, 250);
+
+        public static Color BorderColor =
+            Color.FromArgb(220, 226, 235);
+
+        public static Color MutedTextColor =
+            Color.FromArgb(120, 130, 145);
+
+        public static Color WarningColor =
+            Color.FromArgb(237, 156, 40);
+
+        // ============ HELPER METHODS ============
+
+
+        /// Darkens a color by a specified percentage for hover effects
+        public static Color DarkenColor(Color color, int percent)
+        {
+            return Color.FromArgb(
+                Math.Max(0, color.R - (color.R * percent / 100)),
+                Math.Max(0, color.G - (color.G * percent / 100)),
+                Math.Max(0, color.B - (color.B * percent / 100))
+            );
+        }
+
+
+        public static void StylePrimaryButton(Button btn)
+        {
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.BackColor = SecondaryColor;
+            btn.ForeColor = Color.White;
+            btn.Cursor = Cursors.Hand;
+            btn.UseVisualStyleBackColor = false;
+            btn.MouseEnter += (s, e) => btn.BackColor = DarkenColor(SecondaryColor, 15);
+            btn.MouseLeave += (s, e) => btn.BackColor = SecondaryColor;
+        }
+
+        public static void StyleSecondaryButton(Button btn)
+        {
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderColor = BorderColor;
+            btn.BackColor = CardColor;
+            btn.ForeColor = TextColor;
+            btn.Cursor = Cursors.Hand;
+            btn.UseVisualStyleBackColor = false;
+            btn.MouseEnter += (s, e) => btn.BackColor = LightBackground;
+            btn.MouseLeave += (s, e) => btn.BackColor = CardColor;
+        }
+
+        public static void StyleGrid(DataGridView g)
+        {
+            g.BorderStyle = BorderStyle.None;
+            g.BackgroundColor = CardColor;
+            g.EnableHeadersVisualStyles = false;
+            g.ColumnHeadersDefaultCellStyle.BackColor = AccentColor;       // light blue headers
+            g.ColumnHeadersDefaultCellStyle.ForeColor = PrimaryColor;
+            g.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 9.5F);
+            g.ColumnHeadersDefaultCellStyle.SelectionBackColor = AccentColor;
+            g.ColumnHeadersDefaultCellStyle.SelectionForeColor = PrimaryColor;
+            g.ColumnHeadersDefaultCellStyle.Padding = new Padding(6, 0, 0, 0);
+            g.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            g.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            g.ColumnHeadersHeight = 38;
+            g.RowHeadersVisible = false;
+            g.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            g.GridColor = BorderColor;
+            g.RowTemplate.Height = 32;
+            g.DefaultCellStyle.ForeColor = TextColor;
+            g.DefaultCellStyle.Padding = new Padding(6, 0, 0, 0);
+            g.DefaultCellStyle.SelectionBackColor = AccentColor;
+            g.DefaultCellStyle.SelectionForeColor = PrimaryColor;
+            g.AlternatingRowsDefaultCellStyle.BackColor = GridRowAlt;
+            g.ReadOnly = true;
+            g.AllowUserToAddRows = false;
+            g.AllowUserToDeleteRows = false;
+            g.AllowUserToResizeRows = false;
+            g.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            g.MultiSelect = false;
+        }
+
+        public static void StyleSolidButton(Button btn, Color color)
+        {
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = DarkenColor(color, 15);
+            btn.FlatAppearance.MouseDownBackColor = DarkenColor(color, 25);
+            btn.BackColor = color;
+            btn.ForeColor = Color.White;
+            btn.Cursor = Cursors.Hand;
+            btn.UseVisualStyleBackColor = false;
+
+        
+            btn.EnabledChanged += (s, e) =>
+                btn.BackColor = btn.Enabled ? color : Color.FromArgb(225, 229, 235);
+        }
     }
 }
 

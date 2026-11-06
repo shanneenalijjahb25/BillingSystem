@@ -29,97 +29,109 @@
         private void InitializeComponent()
         {
             lblBillingHistory = new Label();
-            dataGridView1 = new DataGridView();
+            dgvBillingHistory = new DataGridView();
+            btnClose = new Button();
             BillingMonth = new DataGridViewTextBoxColumn();
             PreviousReading = new DataGridViewTextBoxColumn();
             PresentReading = new DataGridViewTextBoxColumn();
             Consumption = new DataGridViewTextBoxColumn();
-            RatePerCubic = new DataGridViewTextBoxColumn();
+            Rate = new DataGridViewTextBoxColumn();
             TotalAmount = new DataGridViewTextBoxColumn();
             Status = new DataGridViewTextBoxColumn();
-            btnClose = new Button();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvBillingHistory).BeginInit();
             SuspendLayout();
             // 
             // lblBillingHistory
             // 
             lblBillingHistory.AutoSize = true;
-            lblBillingHistory.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblBillingHistory.Location = new Point(72, 44);
+            lblBillingHistory.Font = new Font("Segoe UI", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblBillingHistory.ForeColor = Color.FromArgb(31, 78, 121);
+            lblBillingHistory.Location = new Point(78, 45);
             lblBillingHistory.Name = "lblBillingHistory";
-            lblBillingHistory.Size = new Size(171, 31);
+            lblBillingHistory.Size = new Size(205, 38);
             lblBillingHistory.TabIndex = 0;
             lblBillingHistory.Text = "Billing History";
             // 
-            // dataGridView1
+            // dgvBillingHistory
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { BillingMonth, PreviousReading, PresentReading, Consumption, RatePerCubic, TotalAmount, Status });
-            dataGridView1.Location = new Point(72, 101);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new Size(640, 245);
-            dataGridView1.TabIndex = 1;
+            dgvBillingHistory.AllowUserToAddRows = false;
+            dgvBillingHistory.AllowUserToDeleteRows = false;
+            dgvBillingHistory.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvBillingHistory.BackgroundColor = Color.White;
+            dgvBillingHistory.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvBillingHistory.Columns.AddRange(new DataGridViewColumn[] { BillingMonth, PreviousReading, PresentReading, Consumption, Rate, TotalAmount, Status });
+            dgvBillingHistory.GridColor = Color.Gainsboro;
+            dgvBillingHistory.Location = new Point(40, 100);
+            dgvBillingHistory.Name = "dgvBillingHistory";
+            dgvBillingHistory.ReadOnly = true;
+            dgvBillingHistory.RowHeadersVisible = false;
+            dgvBillingHistory.RowHeadersWidth = 51;
+            dgvBillingHistory.ScrollBars = ScrollBars.Vertical;
+            dgvBillingHistory.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvBillingHistory.Size = new Size(698, 245);
+            dgvBillingHistory.TabIndex = 1;
+            // 
+            // btnClose
+            // 
+            btnClose.AutoSize = true;
+            btnClose.ForeColor = Color.FromArgb(31, 78, 121);
+            btnClose.Location = new Point(625, 371);
+            btnClose.Name = "btnClose";
+            btnClose.Size = new Size(94, 30);
+            btnClose.TabIndex = 2;
+            btnClose.Text = "Close";
+            btnClose.UseVisualStyleBackColor = true;
+            btnClose.Click += btnClose_Click;
             // 
             // BillingMonth
             // 
+            BillingMonth.FillWeight = 105F;
             BillingMonth.HeaderText = "Billing Month";
-            BillingMonth.MinimumWidth = 6;
+            BillingMonth.MinimumWidth = 7;
             BillingMonth.Name = "BillingMonth";
-            BillingMonth.Width = 90;
+            BillingMonth.ReadOnly = true;
             // 
             // PreviousReading
             // 
             PreviousReading.HeaderText = "Previous Reading";
             PreviousReading.MinimumWidth = 6;
             PreviousReading.Name = "PreviousReading";
-            PreviousReading.Width = 80;
+            PreviousReading.ReadOnly = true;
             // 
             // PresentReading
             // 
             PresentReading.HeaderText = "Present Reading";
             PresentReading.MinimumWidth = 6;
             PresentReading.Name = "PresentReading";
-            PresentReading.Width = 80;
+            PresentReading.ReadOnly = true;
             // 
             // Consumption
             // 
             Consumption.HeaderText = "Consumption";
             Consumption.MinimumWidth = 6;
             Consumption.Name = "Consumption";
-            Consumption.Width = 99;
+            Consumption.ReadOnly = true;
             // 
-            // RatePerCubic
+            // Rate
             // 
-            RatePerCubic.HeaderText = "Rate";
-            RatePerCubic.MinimumWidth = 6;
-            RatePerCubic.Name = "RatePerCubic";
-            RatePerCubic.Width = 80;
+            Rate.HeaderText = "Rate";
+            Rate.MinimumWidth = 6;
+            Rate.Name = "Rate";
+            Rate.ReadOnly = true;
             // 
             // TotalAmount
             // 
             TotalAmount.HeaderText = "Total Amount";
             TotalAmount.MinimumWidth = 6;
             TotalAmount.Name = "TotalAmount";
-            TotalAmount.Width = 80;
+            TotalAmount.ReadOnly = true;
             // 
             // Status
             // 
             Status.HeaderText = "Status";
             Status.MinimumWidth = 6;
             Status.Name = "Status";
-            Status.Width = 80;
-            // 
-            // btnClose
-            // 
-            btnClose.Location = new Point(618, 379);
-            btnClose.Name = "btnClose";
-            btnClose.Size = new Size(94, 29);
-            btnClose.TabIndex = 2;
-            btnClose.Text = "Close";
-            btnClose.UseVisualStyleBackColor = true;
-            btnClose.Click += btnClose_Click;  
-
+            Status.ReadOnly = true;
             // 
             // frmBillingHistory
             // 
@@ -127,12 +139,12 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(782, 453);
             Controls.Add(btnClose);
-            Controls.Add(dataGridView1);
+            Controls.Add(dgvBillingHistory);
             Controls.Add(lblBillingHistory);
             Name = "frmBillingHistory";
             Text = "frmBillingHistory";
             Load += frmBillingHistory_Load;
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvBillingHistory).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -140,14 +152,14 @@
         #endregion
 
         private Label lblBillingHistory;
-        private DataGridView dataGridView1;
+        private DataGridView dgvBillingHistory;
+        private Button btnClose;
         private DataGridViewTextBoxColumn BillingMonth;
         private DataGridViewTextBoxColumn PreviousReading;
         private DataGridViewTextBoxColumn PresentReading;
         private DataGridViewTextBoxColumn Consumption;
-        private DataGridViewTextBoxColumn RatePerCubic;
+        private DataGridViewTextBoxColumn Rate;
         private DataGridViewTextBoxColumn TotalAmount;
         private DataGridViewTextBoxColumn Status;
-        private Button btnClose;
     }
 }

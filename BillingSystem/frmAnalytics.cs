@@ -1,16 +1,14 @@
-﻿using System;
+﻿using BillingSystem.Database;
+using BillingSystem.Utils;
+using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
-using BillingSystem.Database;
-using ScottPlot;
-using OpenTK.Input;
+
+using DrawingColor = System.Drawing.Color;
 
 namespace BillingSystem
 {
@@ -19,11 +17,95 @@ namespace BillingSystem
         public frmAnalytics()
         {
             InitializeComponent();
+
             dgvTop5.AutoGenerateColumns = false;
             dgvTop5.Columns["FullName"].DataPropertyName = "FullName";
             dgvTop5.Columns["TotalConsumption"].DataPropertyName = "TotalConsumption";
             dgvTop5.Columns["TotalBilled"].DataPropertyName = "TotalBilled";
+
+            dgvTop5.Columns["TotalConsumption"].DefaultCellStyle.Alignment =
+                DataGridViewContentAlignment.MiddleRight;
+            dgvTop5.Columns["TotalBilled"].DefaultCellStyle.Alignment =
+                DataGridViewContentAlignment.MiddleRight;
+            dgvTop5.Columns["TotalBilled"].DefaultCellStyle.Format = "N2";
         }
+
+        private void frmAnalytics_Load(object sender, EventArgs e)
+        {
+            ApplyTheme();
+            LoadKpiSummary();
+            LoadMonthlyRevenueChart();
+            LoadPaidUnpaidChart();
+            LoadTop5Customers();
+        }
+
+        // ================= THEME ================= //
+
+        private void ApplyTheme()
+        {
+            BackColor = AppTheme.LightBackground;
+            ForeColor = AppTheme.TextColor;
+
+            // Header
+            pnlHeader.BackColor = AppTheme.PrimaryColor;
+            lblTitle.ForeColor = DrawingColor.White;
+            lblSubtitle.ForeColor = AppTheme.AccentColor;
+
+            btnCloseAnalytics.FlatStyle = FlatStyle.Flat;
+            btnCloseAnalytics.FlatAppearance.BorderColor = DrawingColor.White;
+            btnCloseAnalytics.FlatAppearance.MouseOverBackColor = AppTheme.SecondaryColor;
+            btnCloseAnalytics.BackColor = AppTheme.PrimaryColor;
+            btnCloseAnalytics.ForeColor = DrawingColor.White;
+            btnCloseAnalytics.Cursor = Cursors.Hand;
+            btnCloseAnalytics.UseVisualStyleBackColor = false;
+
+            btnAnalytics.FlatStyle = FlatStyle.Flat;
+            btnAnalytics.FlatAppearance.BorderColor = DrawingColor.White;
+            btnAnalytics.FlatAppearance.MouseOverBackColor = AppTheme.SecondaryColor;
+            btnAnalytics.BackColor = AppTheme.PrimaryColor;
+            btnAnalytics.ForeColor = DrawingColor.White;
+            btnAnalytics.Cursor = Cursors.Hand;
+            btnAnalytics.UseVisualStyleBackColor = false;
+
+            // KPI cards
+            StyleKpiCard(cardCustomers, accentCustomers, lblCapCustomers,
+                lblTotalCustomers, AppTheme.PrimaryColor);
+            StyleKpiCard(cardRevenue, accentRevenue, lblCapRevenue,
+                lblTotalRevenue, AppTheme.SuccessColor);
+            StyleKpiCard(cardUnpaid, accentUnpaid, lblCapUnpaid,
+                lblTotalUnpaid, AppTheme.DangerColor);
+
+            // Top 5 card
+            pnlTop5.BackColor = AppTheme.CardColor;
+            lblTop5Title.ForeColor = AppTheme.PrimaryColor;
+            AppTheme.StyleGrid(dgvTop5);
+
+            // Chart backgrounds (nagtatakip sa gilid kapag may margin)
+            plotMonthlyRevenue.BackColor = AppTheme.CardColor;
+            plotPaidUnpaid.BackColor = AppTheme.CardColor;
+        }
+
+        private void StyleKpiCard(Panel card, Panel accent, Label caption,
+            Label value, DrawingColor accentColor)
+        {
+            card.BackColor = AppTheme.CardColor;
+            accent.BackColor = accentColor;
+            caption.ForeColor = AppTheme.MutedTextColor;
+            caption.Font = new Font("Segoe UI Semibold", 8.5F);
+            value.ForeColor = accentColor;
+        }
+
+        private static ScottPlot.Color Sp(DrawingColor c) => ScottPlot.Color.FromColor(c);
+
+        private void StylePlot(ScottPlot.Plot plot)
+        {
+            plot.FigureBackground.Color = Sp(AppTheme.CardColor);
+            plot.DataBackground.Color = Sp(AppTheme.CardColor);
+            plot.Grid.MajorLineColor = Sp(AppTheme.BorderColor);
+            plot.Axes.Color(Sp(AppTheme.MutedTextColor));
+        }
+
+        // ================= KPI =================
 
         private void LoadKpiSummary()
         {
@@ -33,32 +115,28 @@ namespace BillingSystem
                 {
                     conn.Open();
 
-                    // 1) Total number of customers
-                    string sqlCustomers = "SELECT COUNT(*) FROM Customers;";
-                    using (var cmd = new MySqlCommand(sqlCustomers, conn))
+                    using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM Customers;", conn))
                     {
                         int totalCustomers = Convert.ToInt32(cmd.ExecuteScalar());
-                        lblTotalCustomers.Text = $"Total Customers: {totalCustomers}";
+                        lblTotalCustomers.Text = totalCustomers.ToString("N0");
                     }
 
-                    // 2) Total revenue — sum of all PAID bills
                     string sqlRevenue = @"SELECT IFNULL(SUM(TotalAmount), 0)
-                                  FROM   Billing
-                                  WHERE  Status = 'Paid';";
+                                          FROM   Billing
+                                          WHERE  Status = 'Paid';";
                     using (var cmd = new MySqlCommand(sqlRevenue, conn))
                     {
                         decimal totalRevenue = Convert.ToDecimal(cmd.ExecuteScalar());
-                        lblTotalRevenue.Text = $"Total Revenue: ₱{totalRevenue:N2}";
+                        lblTotalRevenue.Text = $"₱{totalRevenue:N2}";
                     }
 
-                    // 3) Total unpaid — sum of all UNPAID bills
                     string sqlUnpaid = @"SELECT IFNULL(SUM(TotalAmount), 0)
-                                 FROM   Billing
-                                 WHERE  Status = 'Unpaid';";
+                                         FROM   Billing
+                                         WHERE  Status = 'Unpaid';";
                     using (var cmd = new MySqlCommand(sqlUnpaid, conn))
                     {
                         decimal totalUnpaid = Convert.ToDecimal(cmd.ExecuteScalar());
-                        lblTotalUnpaid.Text = $"Total Unpaid: ₱{totalUnpaid:N2}";
+                        lblTotalUnpaid.Text = $"₱{totalUnpaid:N2}";
                     }
                 }
             }
@@ -68,6 +146,9 @@ namespace BillingSystem
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        // ================= CHARTS =================
+
         private void LoadMonthlyRevenueChart()
         {
             try
@@ -79,13 +160,12 @@ namespace BillingSystem
                 {
                     conn.Open();
 
-                    // Group PAID bills by month and sum the total amount
                     string sql = @"SELECT BillingMonth,
-                                  SUM(TotalAmount) AS MonthlyTotal
-                           FROM   Billing
-                           WHERE  Status = 'Paid'
-                           GROUP  BY BillingMonth
-                           ORDER  BY MIN(BillingDate);";
+                                          SUM(TotalAmount) AS MonthlyTotal
+                                   FROM   Billing
+                                   WHERE  Status = 'Paid'
+                                   GROUP  BY BillingMonth
+                                   ORDER  BY MIN(BillingDate);";
 
                     using (var cmd = new MySqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -98,30 +178,38 @@ namespace BillingSystem
                     }
                 }
 
-                // Clear any existing plot before drawing a new one
-                plotMonthlyRevenue.Plot.Clear();
+                var plot = plotMonthlyRevenue.Plot;
+                plot.Clear();
+                StylePlot(plot);
 
-                // Add a bar chart using the amounts as bar heights
-                double[] values = amounts.ToArray();
-                var barPlot = plotMonthlyRevenue.Plot.Add.Bars(values);
+                var barPlot = plot.Add.Bars(amounts.ToArray());
+                foreach (var bar in barPlot.Bars)
+                {
+                    bar.FillColor = Sp(AppTheme.SecondaryColor);
+                    bar.Label = bar.Value.ToString("N0");      // halaga sa ibabaw ng bar
+                }
+                barPlot.ValueLabelStyle.Bold = true;
+                barPlot.ValueLabelStyle.FontSize = 11;
 
-                // Use the month names as X-axis tick labels
-                double[] positions = new double[months.Count];
-                for (int i = 0; i < months.Count; i++) positions[i] = i;
-
+                double[] positions = Enumerable.Range(0, months.Count)
+                                               .Select(i => (double)i).ToArray();
                 string[] shortMonths = months
-                .Select(m => DateTime.Parse(m).ToString("MMM yy"))
-                .ToArray();
+                    .Select(m => DateTime.Parse(m).ToString("MMM yy"))
+                    .ToArray();
 
-                plotMonthlyRevenue.Plot.Axes.Bottom.SetTicks(positions, shortMonths);
+                plot.Axes.Bottom.SetTicks(positions, shortMonths);
+                plot.Axes.Bottom.TickLabelStyle.FontSize = 11;
 
-                // Adjust the month labels
-                plotMonthlyRevenue.Plot.Axes.Bottom.TickLabelStyle.FontSize = 10;
-                plotMonthlyRevenue.Plot.Axes.Bottom.TickLabelStyle.Rotation = -45;
+                // ₱ sa Y axis
+                plot.Axes.Left.TickGenerator = new ScottPlot.TickGenerators.NumericAutomatic
+                {
+                    LabelFormatter = v => $"₱{v:N0}"
+                };
 
-                plotMonthlyRevenue.Plot.Title("Monthly Revenue (Paid Bills)");
-                plotMonthlyRevenue.Plot.YLabel("Revenue (₱)");
-                plotMonthlyRevenue.Plot.XLabel("Month");
+                plot.Axes.Margins(bottom: 0, top: 0.15);   // may espasyo ang labels sa taas
+
+                plot.Title("Monthly Revenue (Paid Bills)", 15);
+                plot.Axes.Title.Label.ForeColor = Sp(AppTheme.PrimaryColor);
 
                 plotMonthlyRevenue.Refresh();
             }
@@ -132,10 +220,8 @@ namespace BillingSystem
             }
         }
 
-
         private void LoadPaidUnpaidChart()
         {
-
             try
             {
                 int paidCount = 0;
@@ -146,8 +232,8 @@ namespace BillingSystem
                     conn.Open();
 
                     string sql = @"SELECT Status, COUNT(*) AS StatusCount
-                       FROM Billing
-                       GROUP BY Status;";
+                                   FROM Billing
+                                   GROUP BY Status;";
 
                     using (var cmd = new MySqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -163,44 +249,44 @@ namespace BillingSystem
                     }
                 }
 
-                plotPaidUnpaid.Plot.Clear();
+                var plot = plotPaidUnpaid.Plot;
+                plot.Clear();
+                StylePlot(plot);
 
                 double[] values = { paidCount, unpaidCount };
                 string[] labels = { "Paid", "Unpaid" };
+                DrawingColor[] colors = { AppTheme.SecondaryColor, AppTheme.WarningColor };
                 double total = paidCount + unpaidCount;
 
-                var pie = plotPaidUnpaid.Plot.Add.Pie(values);
+                var pie = plot.Add.Pie(values);
 
                 for (int i = 0; i < pie.Slices.Count; i++)
                 {
-                    double percentage = total > 0 ? values[i] / total : 0;
-                    pie.Slices[i].Label =
-                        $"{labels[i]} ({percentage:P0}, {values[i]:0} bills)";
-
-                    pie.Slices[i].LabelFontSize = 9;
+                    double pct = total > 0 ? values[i] / total : 0;
+                    pie.Slices[i].FillColor = Sp(colors[i]);
+                    pie.Slices[i].Label = $"{labels[i]}\n{pct:P0} ({values[i]:0} bills)";
+                    pie.Slices[i].LabelFontSize = 12;
                     pie.Slices[i].LabelBold = true;
                 }
 
-                pie.SliceLabelDistance = 0.5;   // place labels on the slices
+                pie.SliceLabelDistance = 0.6;   // nasa loob ng slice, hindi nagbabanggaan
 
-                // Remove axes and gridlines
-                plotPaidUnpaid.Plot.Axes.Frameless();
-                plotPaidUnpaid.Plot.HideGrid();
+                plot.Axes.Frameless();
+                plot.HideGrid();
 
-                plotPaidUnpaid.Plot.Title("Paid vs Unpaid Bills");
+                plot.Title("Paid vs Unpaid Bills", 15);
+                plot.Axes.Title.Label.ForeColor = Sp(AppTheme.PrimaryColor);
 
                 plotPaidUnpaid.Refresh();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error loading Paid/Unpaid chart:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show($"Error loading Paid/Unpaid chart:\n{ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
         }
+
+        // ================= TOP 5 =================
 
         private void LoadTop5Customers()
         {
@@ -211,27 +297,19 @@ namespace BillingSystem
                     conn.Open();
 
                     string sql = @"SELECT c.FullName,
-                                  SUM(b.Consumption)  AS TotalConsumption,
-                                  SUM(b.TotalAmount)  AS TotalBilled
-                           FROM   Customers c
-                           INNER JOIN Billing b ON c.CustomerID = b.CustomerID
-                           GROUP  BY c.CustomerID, c.FullName
-                           ORDER  BY TotalConsumption DESC
-                           LIMIT  5;";
+                                          SUM(b.Consumption) AS TotalConsumption,
+                                          SUM(b.TotalAmount) AS TotalBilled
+                                   FROM   Customers c
+                                   INNER JOIN Billing b ON c.CustomerID = b.CustomerID
+                                   GROUP  BY c.CustomerID, c.FullName
+                                   ORDER  BY TotalConsumption DESC
+                                   LIMIT  5;";
 
                     using (var adapter = new MySqlDataAdapter(sql, conn))
                     {
                         DataTable dt = new DataTable();
                         adapter.Fill(dt);
-
                         dgvTop5.DataSource = dt;
-
-                        if (dgvTop5.Columns.Count > 0)
-                        {
-                            dgvTop5.Columns["FullName"].HeaderText = "Customer Name";
-                            dgvTop5.Columns["TotalConsumption"].HeaderText = "Total Consumption (kWh)";
-                            dgvTop5.Columns["TotalBilled"].HeaderText = "Total Billed (₱)";
-                        }
                     }
                 }
             }
@@ -242,25 +320,15 @@ namespace BillingSystem
             }
         }
 
-        private void frmAnalytics_Load(object sender, EventArgs e)
+        private void btnCloseAnalytics_Click(object sender, EventArgs e)
         {
-            LoadKpiSummary();
-            LoadMonthlyRevenueChart();
-            LoadPaidUnpaidChart();
-            LoadTop5Customers();
+            Close();
         }
 
         private void btnAnalytics_Click(object sender, EventArgs e)
         {
-            // Open the Analytics Dashboard as a dialog so the
-            // Customer List stays open in the background
             frmAnalytics analyticsForm = new frmAnalytics();
             analyticsForm.ShowDialog(this);
-        }
-
-        private void btnCloseAnalytics_Click(object sender, EventArgs e)
-        {
-            this.Close();
         }
     }
 }
